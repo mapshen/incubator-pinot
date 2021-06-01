@@ -74,6 +74,13 @@ public class KafkaJSONMessageDecoder implements StreamMessageDecoder<byte[]> {
 
   @Override
   public GenericRow decode(byte[] payload, int offset, int length, GenericRow destination) {
-    return decode(Arrays.copyOfRange(payload, offset, offset + length), destination);
+    try {
+      destination = decode(Arrays.copyOfRange(payload, offset, offset + length), destination);
+      destination.putValue("$offset", offset);
+      return destination;
+    } catch (Exception e) {
+      LOGGER.error("Caught exception while decoding row, discarding row. Payload is {}", new String(payload), e);
+      return null;
+    }
   }
 }
